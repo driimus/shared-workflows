@@ -1,0 +1,63 @@
+name: Add to project
+
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+        description: Name of the project that the PR should be linked to
+      column_name:
+        required: true
+        type: string
+        description: Name of the target project board column
+
+jobs:
+  link-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        env:
+          GH_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PRID: ${{ github.event.pull_request.node_id }}
+        run: |
+          projectNumber () {
+            # shellcheck disable=SC2016,SC2046
+            gh api graphql -f query='query($owner:String!, $repo:String!) {
+              repository(owner:$owner, name:$repo) {
+                projects(first:10) { nodes {name, number} }
+              }
+            }' -f owner="${GH_REPO%/*}" -f repo="${GH_REPO#*/}" \
+              -q ".data.repository.projects.nodes[] | select(.name | startswith(\"$1\")) | .number"
+          }
+
+          colID () {
+            # shellcheck disable=SC2016,SC2046
+            gh api graphql -f query='query($owner:String!, $repo:String!, $project:Int!) {
+              repository(owner:$owner, name:$repo) {
+                project(number:$project) {
+                  columns(first:10) { nodes {id,name} }
+                }
+              }
+            }' -f owner="${GH_REPO%/*}" -f repo="${GH_REPO#*/}" -F project=$(projectNumber "${{inputs.project_name}}") \
+              -q ".data.repository.project.columns.nodes[] | select(.name | startswith(\"$1\")) | .id"
+          }
+
+
+          addToBoard () {
+            # shellcheck disable=SC2016,SC2046
+            gh api graphql --silent -f query='mutation($colID:ID!, $prID:ID!) { 
+              addProjectCard(input:{ projectColumnId:$colID, contentId:$prID }) { clientMutationId } 
+            }' -f colID="$(colID "${{inputs.column_name}}")" -f prID="$PRID"
+          }
+
+          if ! errtext="$(addToBoard 2>&1)"
+          then
+            cat <<<"$errtext" >&2
+            if ! grep -iq "project already has the associated issue" <<<"$errtext"
+            then
+              exit 1
+            fi
+          fi
+          exit 0
