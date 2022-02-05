@@ -1,0 +1,47 @@
+name: Add to project
+
+on:
+  workflow_call:
+    inputs:
+      column_name:
+        required: true
+        type: string
+        description: Name of the column that the PR should be added to
+
+jobs:
+  link-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        env:
+          GH_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRID: ${{ github.event.pull_request.node_id }}
+        run: |
+          colID () {
+            gh api graphql -f query="query($owner:String!, $repo:String!) {
+              repository(owner:$owner, name:$repo) {
+                project(number:1) {
+                  columns(first:10) { nodes {id,name} }
+                }
+              }
+            }" -f owner="${GH_REPO%/*}" -f repo="${GH_REPO#*/}" \
+              -q ".data.repository.project.columns.nodes[] | select(.name | startswith(\"$1\")) | .id"
+          }
+
+
+          addToBoard () {
+            gh api graphql --silent -f query="
+              mutation($colID:ID!, $prID:ID!) { addProjectCard(input: { projectColumnId: $colID, contentId: $prID }) { clientMutationId } }
+            " -f colID="$(colID "${{inputs.column_name}}")" -f prID="$PRID"
+          }
+
+          if ! errtext="$(addToBoard 2>&1)"
+          then
+            cat <<<"$errtext" >&2
+            if ! grep -iq "project already has the associated issue" <<<"$errtext"
+            then
+              exit 1
+            fi
+          fi
+          exit 0
