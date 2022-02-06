@@ -1,0 +1,30 @@
+name: Add to project
+
+on:
+  workflow_call:
+    inputs:
+      pull_request:
+        required: true
+        type: number
+        description: Pull Request number
+
+jobs:
+  convert-pr-to-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        env:
+          GH_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          # shellcheck disable=SC2016,SC2046
+          gh api graphql -f query='
+            mutation($id: String!) {
+              convertPullRequestToDraft(input: { pullRequestId: $id }) {
+                pullRequest {
+                  number
+                  isDraft
+                }
+              }
+            }
+          ' -f owner="${GH_REPO%/*}" -f repo="${GH_REPO#*/}" -f id="${{ github.event.pull_request.node_id }}"
