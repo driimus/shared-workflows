@@ -1,6 +1,14 @@
 name: Test
 
-on: workflow_call
+on:
+  workflow_call:
+    secrets:
+      turbo_token:
+        required: false
+        description: Vercel access token for distributed Turborepo caching
+      turbo_team:
+        required: false
+        description: Slug of the remote cache Vercel team
 
 jobs:
   test:
@@ -28,6 +36,9 @@ jobs:
 
       - name: Test
         run: pnpm test
+        env:
+          TURBO_TOKEN: ${{ secrets.turbo_token }}
+          TURBO_TEAM: ${{ secrets.turbo_team }}
 
   lint:
     name: Lint
@@ -39,7 +50,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2.0.1
         with:
-          version: 6.0.2
+          version: 6.30.1
 
       - name: Setup Node
         uses: actions/setup-node@v2
