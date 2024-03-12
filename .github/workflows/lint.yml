@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node version on which to run the tests'
+        description: "Node version on which to run the tests"
         type: number
-        default: 18
+        default: 20
 
     secrets:
       turbo_token:
@@ -18,20 +18,20 @@ on:
 
 env:
   NODE_VERSION: ${{ inputs.node-version }}
-  
+
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2.2.4
+        uses: pnpm/action-setup@v3
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"

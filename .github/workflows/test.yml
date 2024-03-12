@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node version on which to run the tests'
+        description: "Node version on which to run the tests"
         type: number
-        default: 16
+        default: 20
 
     secrets:
       turbo_token:
@@ -18,20 +18,20 @@ on:
 
 env:
   NODE_VERSION: ${{ inputs.node-version }}
-  
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2.2.4
+        uses: pnpm/action-setup@v3
 
       # TODO: partition cache based on inputs (os)
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # TODO: this step can be removed, but that'll reduce the visibility of compilation errors 
+      # TODO: this step can be removed, but that'll reduce the visibility of compilation errors
       - name: Build
         run: pnpm build
         env:
