@@ -1,0 +1,42 @@
+name: Publish (with Changesets)
+
+on:
+  workflow_call:
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  packages:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: install pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: setup node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: 'pnpm'
+
+      - name: install dependencies
+        run: pnpm install
+
+      - name: create and publish versions
+        uses: changesets/action@v1
+        with:
+          publish: pnpm ci:publish
+          version: pnpm ci:version
+          commit: 'chore: update versions'
+          title: 'chore: update versions'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
