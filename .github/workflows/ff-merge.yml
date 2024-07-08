@@ -8,12 +8,9 @@ on:
         default: main
         type: string
 
-permissions:
-  contents: write
-
 jobs:
   fast-forward:
-    name: Fast-forward merge head ref into main
+    name: Fast-forward merge into ${{ inputs.base }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
