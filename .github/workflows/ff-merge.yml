@@ -1,0 +1,33 @@
+name: Merge changes
+
+on:
+  workflow_call:
+    inputs:
+      base:
+        description: The branch into which you want your code merged
+        default: main
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  fast-forward:
+    name: Fast-forward merge head ref into main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base }}
+          fetch-depth: 0
+
+      - name: Git config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fast-forward merge
+        run: |
+          git merge --ff-only "$GITHUB_SHA"
+          git push
