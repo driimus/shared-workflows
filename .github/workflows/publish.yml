@@ -5,6 +5,10 @@ on:
     secrets:
       NPM_TOKEN:
         required: true
+      GPG_PRIVATE_KEY:
+        required: true
+      GPG_PASSPHRASE:
+        required: true
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -17,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: install pnpm
         uses: pnpm/action-setup@v3
@@ -29,6 +34,14 @@ jobs:
 
       - name: install dependencies
         run: pnpm install
+      
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
 
       - name: create and publish versions
         uses: changesets/action@v1
@@ -37,6 +50,7 @@ jobs:
           version: pnpm ci:version
           commit: 'chore: update versions'
           title: 'chore: update versions'
+          setupGitUser: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
