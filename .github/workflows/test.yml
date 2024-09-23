@@ -39,7 +39,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # TODO: this step can be removed, but that'll reduce the visibility of compilation errors
       - name: Build
         run: pnpm build
         env:

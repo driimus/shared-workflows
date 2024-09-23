@@ -2,12 +2,6 @@ name: Lint
 
 on:
   workflow_call:
-    inputs:
-      node-version:
-        description: "Node version on which to run the tests"
-        type: number
-        default: 20
-
     secrets:
       turbo_token:
         required: false
@@ -15,9 +9,6 @@ on:
       turbo_team:
         required: false
         description: Slug of the remote cache Vercel team
-
-env:
-  NODE_VERSION: ${{ inputs.node-version }}
 
 jobs:
   lint:
@@ -33,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .node-version
           cache: "pnpm"
 
       - name: Install dependencies
