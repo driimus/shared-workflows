@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       node-version:
+        required: false
         description: "Node version on which to run the tests"
-        type: number
-        default: 20
+        type: string
 
     secrets:
       turbo_token:
@@ -29,10 +29,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
 
-      # TODO: partition cache based on inputs (os)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
+          node-version-file: ${{ env.NODE_VERSION == null && '.node-version' || '' }}
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
 

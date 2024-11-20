@@ -36,7 +36,7 @@ jobs:
   test:
     uses: driimus/shared-workflows/.github/workflows/test.yml@main
     with:
-      node-version: 20
+      node-version: 22
     # Optional Turborepo credentials to use for Remote Caching
     secrets:
       turbo_token: ${{ secrets.TURBO_TOKEN }}
