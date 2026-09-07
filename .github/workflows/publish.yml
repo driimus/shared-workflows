@@ -42,7 +42,7 @@ jobs:
           git_commit_gpgsign: true
 
       - name: create and publish versions
-        uses: changesets/action@v1
+        uses: changesets/action@v2.1.2
         with:
           publish: pnpm ci:publish
           version: pnpm ci:version
